@@ -1,28 +1,25 @@
-// Canvas setup
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Ground setup
 const groundHeight = 50;
 const groundY = canvas.height - groundHeight;
 
-// Player setup
 const player = {
   x: canvas.width / 4,
-  y: groundY - 128, // Starting position above the ground
+  y: groundY - 128, 
   width: 256,
   height: 256,
-  dx: 2, // Movement speed
-  dy: 0, // Vertical speed for jumping
+  dx: 2, 
+  dy: 0, 
   gravity: 0.2,
   isJumping: false,
   isCrouching: false,
-  state: "idle", // Current animation state
+  state: "idle", 
   health: 100,
-  direction: "right", // Player's current facing direction
+  direction: "right", 
 };
 
 const spriteSheets = {
@@ -49,12 +46,10 @@ Object.keys(spriteSheets).forEach((state) => {
   loadedSpriteSheets[state] = img;
 });
 
-// Clamp function to constrain values within a range
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-// Draw the ground
 function drawGround() {
   const gradient = ctx.createLinearGradient(0, groundY, 0, canvas.height);
   gradient.addColorStop(0, "darkgreen");
@@ -63,7 +58,6 @@ function drawGround() {
   ctx.fillRect(0, groundY, canvas.width, groundHeight);
 }
 
-// Draw health bars
 function drawHealthBars() {
   const playerHealth = clamp(player.health, 0, 100);
   const aiHealth = clamp(ai.health, 0, 150);
@@ -78,18 +72,14 @@ function drawHealthBars() {
   ctx.strokeRect(canvas.width - 220, 20, 200, 20);
 }
 
-// Visual feedback timers
 let playerHurtTimer = 0;
 let aiHurtTimer = 0;
 
-// Constants for feedback duration (in milliseconds)
 const HIT_FEEDBACK_DURATION = 200;
 
-// Draw the player
 function drawPlayer() {
   const currentTime = performance.now();
 
-  // Change the frame for animation
   if (currentTime - lastPlayerFrameChange > 125) {
     playerFrame = (playerFrame + 1) % spriteSheets[player.state].frameCount;
     lastPlayerFrameChange = currentTime;
@@ -100,9 +90,8 @@ function drawPlayer() {
 
   ctx.save();
 
-  // Apply visual feedback for being hurt
   if (playerHurtTimer > 0) {
-    ctx.filter = "brightness(1.5)"; // Brightness effect for visual feedback
+    ctx.filter = "brightness(1.5)"; 
   }
 
   if (player.direction === "left") {
@@ -134,14 +123,12 @@ function drawPlayer() {
 
   ctx.restore();
 
-  if (playerHurtTimer > 0) playerHurtTimer -= 16.67; // Approximate frame duration in milliseconds
+  if (playerHurtTimer > 0) playerHurtTimer -= 16.67; 
 }
 
-// Draw the AI
 function drawAI() {
   const currentTime = performance.now();
 
-  // Change the frame for animation
   if (currentTime - lastAIFrameChange > 125) {
     aiFrame = (aiFrame + 1) % spriteSheets[ai.state].frameCount;
     lastAIFrameChange = currentTime;
@@ -152,9 +139,8 @@ function drawAI() {
 
   ctx.save();
 
-  // Apply visual feedback for being hurt
   if (aiHurtTimer > 0) {
-    ctx.filter = "brightness(1.5)"; // Brightness effect for visual feedback
+    ctx.filter = "brightness(1.5)"; 
   }
 
   if (ai.direction === "left") {
@@ -186,15 +172,14 @@ function drawAI() {
 
   ctx.restore();
 
-  if (aiHurtTimer > 0) aiHurtTimer -= 16.67; // Approximate frame duration in milliseconds
+  if (aiHurtTimer > 0) aiHurtTimer -= 16.67; 
 }
 
-// Update player position and handle gravity
 function updatePlayer() {
   if (playerAttackCooldown > 0) playerAttackCooldown--;
 
   if (player.state === "attack") {
-    return; // Prevent actions during an attack
+    return; 
   }
 
   if (player.y + player.height < groundY) {
@@ -217,18 +202,17 @@ function updatePlayer() {
     player.state = "walk";
     if (keys["a"]) {
       player.x -= player.dx;
-      player.direction = "left"; // Face left when moving left
+      player.direction = "left"; 
     }
     if (keys["d"]) {
       player.x += player.dx;
-      player.direction = "right"; // Face right when moving right
+      player.direction = "right"; 
     }
   } else {
     player.state = "idle";
   }
 }
 
-// Input handling
 const keys = {};
 document.addEventListener("keydown", (e) => {
   keys[e.key] = true;
@@ -251,7 +235,6 @@ document.addEventListener("keydown", (e) => {
     }, spriteSheets.attack.frameCount * 125);
     playerAttackCooldown = 30;
 
-    // Check for collision and apply damage
     if (
       player.x + player.width > ai.x &&
       player.x < ai.x + ai.width &&
@@ -272,7 +255,6 @@ document.addEventListener("keyup", (e) => {
   }
 });
 
-// AI setup
 const ai = {
   x: (canvas.width * 3) / 4,
   y: groundY - 128,
@@ -302,7 +284,6 @@ function updateAI() {
     ai.isJumping = false;
   }
 
-  // AI decision-making
   if (distanceToPlayer > 200) {
     ai.state = "walk";
     if (player.x < ai.x) {
@@ -315,8 +296,7 @@ function updateAI() {
   } else if (distanceToPlayer > 50 && distanceToPlayer <= 200) {
     ai.state = "attack";
     if (ai.attackCooldown <= 0) {
-      // Attack logic here
-      ai.attackCooldown = 100; // Cooldown period
+      ai.attackCooldown = 100; 
     }
   } else if (distanceToPlayer <= 50) {
     ai.state = "retreat";
@@ -329,7 +309,6 @@ function updateAI() {
     }
   }
 
-  // Handle attack cooldown
   if (ai.attackCooldown > 0) {
     ai.attackCooldown--;
   }
@@ -459,8 +438,7 @@ function drawFPS() {
 let gameRunning = false;
 let gamePaused = false;
 
-function animate() {
-  const currentTime = performance.now();
+function animate(currentTime) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (gamePaused) {
@@ -475,7 +453,7 @@ function animate() {
 
   drawGround();
   drawHealthBars();
-  // drawFPS();
+  drawFPS();
   drawScores();
 
   player.dy = clamp(player.dy + player.gravity, -10, 10);
@@ -489,9 +467,6 @@ function animate() {
     ai.state = "walk";
   }
 
-  if (playerHurtTimer > 0) playerHurtTimer -= currentTime - lastRenderTime;
-  if (aiHurtTimer > 0) aiHurtTimer -= currentTime - lastRenderTime;
-
   const isCollision = (
     player.x + player.width * 0.8 > ai.x + ai.width * 0.2 &&
     player.x + player.width * 0.2 < ai.x + ai.width * 0.8 &&
@@ -500,25 +475,27 @@ function animate() {
   );
 
   if (isCollision) {
-    // Handle collision
     if (playerHurtTimer <= 0) {
-      player.health -= 10; // Reduce player health
-      playerHurtTimer = 1000; // Set hurt timer to prevent continuous damage
+      player.health -= 7.5; 
+      playerHurtTimer = HIT_FEEDBACK_DURATION; 
     }
     if (aiHurtTimer <= 0) {
-      ai.health -= 10; // Reduce AI health
-      aiHurtTimer = 1000; // Set hurt timer to prevent continuous damage
+      ai.health -= 10; 
+      aiHurtTimer = HIT_FEEDBACK_DURATION; 
     }
-
-   
   }
+
+  if (playerHurtTimer > 0) playerHurtTimer -= currentTime - lastRenderTime;
+  if (aiHurtTimer > 0) aiHurtTimer -= currentTime - lastRenderTime;
 
   if (!checkGameOver()) {
     updatePlayer();
     drawPlayer();
     updateAI();
     drawAI();
-    requestAnimationFrame(animate);
+    if (!gamePaused) {
+      requestAnimationFrame(animate);
+    }
   } else {
     gameRunning = false;
   }
@@ -531,14 +508,12 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     if (!gameRunning) {
       if (playerScore < WINNING_SCORE && aiScore < WINNING_SCORE) {
-        // Continue the next round
         resetGame();
         animate();
       }
     }
   }
   if (e.key === "r") {
-    // Restart the entire match
     playerScore = 0;
     aiScore = 0;
     resetGame();
