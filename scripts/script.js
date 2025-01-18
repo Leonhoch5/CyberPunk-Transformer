@@ -432,7 +432,7 @@ function drawFPS() {
 
   ctx.fillStyle = "white";
   ctx.font = "16px ownFont";
-  ctx.fillText(`FPS: ${fps}`, 100, 70);
+  ctx.fillText(`FPS: ${fps}`, 60, 15);
 }
 
 let gameRunning = false;
