@@ -293,31 +293,17 @@ function updateAI() {
 
   const distanceToPlayer = Math.abs(player.x - ai.x);
 
-  // Gravity and ground collision
   ai.dy += ai.gravity;
   ai.y += ai.dy;
+
   if (ai.y + ai.height >= groundY) {
     ai.y = groundY - ai.height;
     ai.dy = 0;
     ai.isJumping = false;
   }
 
-  // Retreat if health is low
-  if (ai.health < 20 && Math.random() < 0.1) {
-    ai.state = "retreat";
-    if (player.x < ai.x) {
-      ai.direction = "right";
-      ai.x += ai.dx * 1.5; // Retreat faster
-    } else {
-      ai.direction = "left";
-      ai.x -= ai.dx * 1.5;
-    }
-    return;
-  }
-
   // AI decision-making
-  if (distanceToPlayer > 150) {
-    // Approach the player
+  if (distanceToPlayer > 200) {
     ai.state = "walk";
     if (player.x < ai.x) {
       ai.direction = "left";
@@ -326,61 +312,28 @@ function updateAI() {
       ai.direction = "right";
       ai.x += ai.dx;
     }
-  } else if (distanceToPlayer <= 150 && distanceToPlayer > 70) {
-    // Random jump or idle
-    if (Math.random() < 0.05 && !ai.isJumping) {
-      ai.dy = -10;
-      ai.isJumping = true;
-      ai.state = "jump";
-    } else {
-      ai.state = "strafe";
-      ai.x += ai.direction === "right" ? ai.dx : -ai.dx;
-    }
-  } else if (distanceToPlayer <= 70) {
-    // Close combat behavior
+  } else if (distanceToPlayer > 50 && distanceToPlayer <= 200) {
+    ai.state = "attack";
     if (ai.attackCooldown <= 0) {
-      ai.state = "attack";
-      ai.attackCooldown = 100 + Math.random() * 50; // Variable cooldown
-
-      ai.direction = ai.x < player.x ? "right" : "left";
-
-      setTimeout(() => {
-        ai.state = "idle";
-      }, spriteSheets.attack.frameCount * 125);
-
-      if (
-        ai.x + ai.width > player.x &&
-        ai.x < player.x + player.width &&
-        ai.y + ai.height > player.y &&
-        ai.y < player.y + player.height
-      ) {
-        player.health -= 10;
-        playerHurtTimer = HIT_FEEDBACK_DURATION;
-      }
+      // Attack logic here
+      ai.attackCooldown = 100; // Cooldown period
+    }
+  } else if (distanceToPlayer <= 50) {
+    ai.state = "retreat";
+    if (player.x < ai.x) {
+      ai.direction = "right";
+      ai.x += ai.dx;
     } else {
-      // Dodge or maintain distance
-      ai.state = "dodge";
-      ai.x += ai.direction === "right" ? -ai.dx : ai.dx;
+      ai.direction = "left";
+      ai.x -= ai.dx;
     }
   }
 
-  // Occasional crouch
-  if (Math.random() < 0.01 && !ai.isJumping && ai.state !== "attack") {
-    ai.state = "crouch";
-    setTimeout(() => {
-      ai.state = "idle";
-    }, 500);
+  // Handle attack cooldown
+  if (ai.attackCooldown > 0) {
+    ai.attackCooldown--;
   }
-
-  // Boundary check
-  ai.x = clamp(ai.x, 0, canvas.width - ai.width);
-
-  // Reduce attack cooldown
-  if (ai.attackCooldown > 0) ai.attackCooldown--;
 }
-
-
-
 
 function drawMenu() {
   ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
@@ -455,8 +408,8 @@ function resetGame() {
 function drawScores() {
   ctx.fillStyle = "white";
   ctx.font = "32px ownFont";
-  ctx.fillText(`Player: ${playerScore}`, 50, 50);
-  ctx.fillText(`AI: ${aiScore}`, canvas.width - 150, 50);
+  ctx.fillText(`Player: ${playerScore}`, 125, 75);
+  ctx.fillText(`AI: ${aiScore}`, canvas.width -50, 75);
 }
 
 function drawRoundWinner(winner) {
@@ -545,6 +498,20 @@ function animate() {
     player.y + player.height * 0.8 > ai.y + ai.height * 0.2 &&
     player.y + player.height * 0.2 < ai.y + ai.height * 0.8
   );
+
+  if (isCollision) {
+    // Handle collision
+    if (playerHurtTimer <= 0) {
+      player.health -= 10; // Reduce player health
+      playerHurtTimer = 1000; // Set hurt timer to prevent continuous damage
+    }
+    if (aiHurtTimer <= 0) {
+      ai.health -= 10; // Reduce AI health
+      aiHurtTimer = 1000; // Set hurt timer to prevent continuous damage
+    }
+
+   
+  }
 
   if (!checkGameOver()) {
     updatePlayer();
