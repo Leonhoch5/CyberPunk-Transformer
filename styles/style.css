@@ -1,0 +1,22 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@font-face {
+    font-family: ownFont;
+    src: url(../assets/gui/font/CyberpunkCraftpixPixel.otf);
+}
+
+body {
+    font-family: ownFont;
+    color: #ffffff;
+    background-color: #000000;
+    cursor: url('../assets/gui/Cursors/2.png'), auto;
+}
+
+canvas {
+    display: block;
+    background-image: url(../assets/backgrounds/2304x1296.png);
+}
